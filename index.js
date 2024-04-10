@@ -32,7 +32,7 @@ io.on('connection', (socket)=>{
         const user = users.find((user)=> user.userId === message.recieverId );
         console.log(user);
         if(user){
-            io.to(socket.id).emit('newMessage', message);
+            // io.to(socket.id).emit('newMessage', message);
             io.to(user.socketId).emit('newMessage', message);
         }
     })
