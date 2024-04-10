@@ -6,14 +6,19 @@ const io = require('socket.io')(8900, {
 
 let users = [];
 
-const addUser = (userId, socketId)=>{
-    if (!users.some(user => user.userId === userId)) {
+const addUser = (userId, socketId) => {
+    const existingUserIndex = users.findIndex(user => user.userId === userId);
+
+    if (existingUserIndex !== -1) {
+        users[existingUserIndex].socketId = socketId;
+    } else {
         users.push({
             userId,
             socketId
         });
     }
 }
+
 io.on('connection', (socket)=>{
     console.log('a user connected...', socket.id)
     console.log(socket.handshake.query.userId);
@@ -51,9 +56,11 @@ io.on('connection', (socket)=>{
     });
     
     //connection terminating
-    socket.on('disconnect', ()=>{
-        users = users.filter((user)=> user.socketId !== socket.id);
+    socket.on('disconnect', () => {
+        users = users.filter(user => user.socketId !== socket.id);
+    
         console.log('after disconnection users', users);
+    
         io.emit('onlineUsers', users);
-    })
+    });
 })
