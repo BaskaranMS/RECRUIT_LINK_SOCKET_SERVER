@@ -54,7 +54,10 @@ io.on('connection', (socket)=>{
         console.log('notTyping', id);
         const user = users.find((user)=> user.userId === id.recipientId );
         if(user){
-            io.to(user.socketId).emit('userNotTyping', id.userId);
+            const details = {
+                userId : id.userId
+            }
+            io.to(user.socketId).emit('userNotTyping', details);
         }
     });
     
