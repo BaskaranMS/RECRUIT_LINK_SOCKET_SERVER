@@ -42,7 +42,10 @@ io.on('connection', (socket)=>{
         console.log('isTyping', id.userId);
         const user = await users.find((user)=> user.userId === id.recipientId );
         if(user){
-            io.to(user.socketId).emit('userTyping', id.userId);
+            const details = {
+                userId : id.userId
+            }
+            io.to(user.socketId).emit('userTyping', details);
         }
     });
 
