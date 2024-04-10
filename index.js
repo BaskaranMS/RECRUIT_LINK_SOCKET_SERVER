@@ -19,6 +19,7 @@ io.on('connection', (socket)=>{
     console.log(socket.handshake.query.userId);
     //new connection
     addUser(socket.handshake.query.userId, socket.id);
+    console.log('after adding new user', users);
     io.emit('onlineUsers', users);
 
     //send message
@@ -52,6 +53,7 @@ io.on('connection', (socket)=>{
     //connection terminating
     socket.on('disconnect', ()=>{
         users = users.filter((user)=> user.socketId !== socket.id);
+        console.log('after disconnection users', users);
         io.emit('onlineUsers', users);
     })
 })
