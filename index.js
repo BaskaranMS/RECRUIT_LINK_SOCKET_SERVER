@@ -38,9 +38,9 @@ io.on('connection', (socket)=>{
     })
 
     //typing
-    socket.on('typing', (id)=>{
+    socket.on('typing', async (id)=>{
         console.log('isTyping', id.userId);
-        const user = users.find((user)=> user.userId === id.recipientId );
+        const user = await users.find((user)=> user.userId === id.recipientId );
         if(user){
             io.to(user.socketId).emit('userTyping', id.userId);
         }
