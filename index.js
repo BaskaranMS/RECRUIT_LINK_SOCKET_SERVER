@@ -6,7 +6,7 @@ const io = require('socket.io')(8900, {
 
 let users = [];
 
-const addUser = (userId, socketId) => {
+const addUser = (userId, socketId, peerId) => {
     const existingUserIndex = users.findIndex(user => user.userId === userId);
 
     if (existingUserIndex !== -1) {
@@ -14,7 +14,8 @@ const addUser = (userId, socketId) => {
     } else {
         users.push({
             userId,
-            socketId
+            socketId,
+            peerId
         });
     }
 }
@@ -22,8 +23,9 @@ const addUser = (userId, socketId) => {
 io.on('connection', (socket)=>{
     console.log('a user connected...', socket.id)
     console.log(socket.handshake.query.userId);
+    console.log('peerId', socket.handshake.query.peerId);
     //new connection
-    addUser(socket.handshake.query.userId, socket.id);
+    addUser(socket.handshake.query.userId, socket.id, socket.handshake.query.peerId);
     console.log('after adding new user', users);
     io.emit('onlineUsers', users);
 
@@ -69,4 +71,53 @@ io.on('connection', (socket)=>{
     
         io.emit('onlineUsers', users);
     });
+
+    socket.on('getPeerId', (id)=>{
+        const user = users.filter((user)=>{
+            return user.userId === id;
+        });
+        console.log(user);
+        io.to(socket.id).emit('peerIdResponse', user[0].peerId);
+    });
+
+    //find target peerId
+    socket.on('findPeer', (data)=>{
+        console.log(data.userId);
+        const user = users.filter((user)=>{
+            return user.userId === data.userId
+        });
+        if(user.length > 0 ){
+            io.to(socket.id).emit('findPeerResponse', {
+                msg : user[0].peerId
+            });
+        }else{
+            io.to(socket.id).emit('findPeerResponse', {
+                msg : 'user is not online'
+            })
+        }
+    })
+
+    //call user
+    socket.on('callUser', (data)=>{
+        const user = users.filter((user)=>{
+            return user.userId === data.userToCall;
+        });
+        if(user){
+            io.to(user[0].socketId).emit('callUser', { signal : data.signalData, from : data.from, name : data.name });
+        }else{
+            console.log('no user found...', data);
+        }
+    });
+
+    //call answer
+    socket.on("answerCall", (data) => {
+        const user = users.filter((user)=>{
+            return user.userId === data.to;
+        });
+        if(user){
+            io.to(user[0].socketId).emit("callAccepted", data.signal)
+        }else{
+            console.log('no user found...', data);
+        }
+	})
 })
